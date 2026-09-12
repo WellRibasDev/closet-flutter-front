@@ -12,6 +12,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/ui_kit.dart';
 import '../data/auth_repository.dart';
 import 'auth_provider.dart';
@@ -40,12 +41,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     });
 
     final AuthRepository repo = ref.read(authRepositoryProvider);
-    final healthy = await repo.checkHealth();
-    if (!healthy) {
+    try {
+      await repo.ensureHealthy();
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _checking = false;
-        _error =
-            'Não foi possível conectar à API. Verifique se o servidor está no ar.';
+        _error = e is ApiException
+            ? e.message
+            : 'Não foi possível conectar à API. Verifique a internet e tente de novo.';
       });
       return;
     }
