@@ -1,17 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart'
-    hide
-        Badge,
-        ButtonStyle,
-        Card,
-        Chip,
-        CircularProgressIndicator,
-        ColorScheme,
-        Theme,
-        ThemeData;
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/categories.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/ui_kit.dart';
 import '../data/models/clothing_item.dart';
 import 'wardrobe_provider.dart';
 
@@ -86,7 +75,7 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
   Future<void> _showPickerSheet() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.cream,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -100,7 +89,7 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
                 width: 42,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.apricotDeep,
+                  color: AppColors.chip,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -108,9 +97,12 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.chip,
-                  child: Icon(LucideIcons.image, color: AppColors.roseDeep),
+                  child: Icon(Icons.photo_library_outlined, color: AppColors.roseDeep),
                 ),
-                title: const Text('Galeria'),
+                title: Text(
+                  'Galeria',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pick(ImageSource.gallery);
@@ -119,9 +111,12 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
               ListTile(
                 leading: const CircleAvatar(
                   backgroundColor: AppColors.chip,
-                  child: Icon(LucideIcons.camera, color: AppColors.roseDeep),
+                  child: Icon(Icons.photo_camera_outlined, color: AppColors.roseDeep),
                 ),
-                title: const Text('Câmera'),
+                title: Text(
+                  'Câmera',
+                  style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pick(ImageSource.camera);
@@ -179,22 +174,78 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
     }
   }
 
+  InputDecoration _fieldDecoration({
+    required String label,
+    String? hint,
+    IconData? icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: icon == null ? null : Icon(icon, color: AppColors.inkSoft),
+      filled: true,
+      fillColor: Colors.white,
+      labelStyle: GoogleFonts.nunito(
+        color: AppColors.inkSoft,
+        fontWeight: FontWeight.w700,
+      ),
+      hintStyle: GoogleFonts.nunito(color: AppColors.inkSoft),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(color: AppColors.chip),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(color: AppColors.chip),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.pinkChip, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.danger),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isEditing) {
       final asyncItem = ref.watch(clothingDetailProvider(widget.itemId!));
       return asyncItem.when(
         loading: () => const Scaffold(
-          body: PastelBackground(
-            child: Center(child: CircularProgressIndicator()),
-          ),
+          backgroundColor: AppColors.blush,
+          body: Center(child: CircularProgressIndicator()),
         ),
         error: (err, _) => Scaffold(
-          body: PastelBackground(
-            child: SoftErrorView(
-              message: err is ApiException ? err.message : 'Erro ao carregar',
-              onRetry: () =>
-                  ref.invalidate(clothingDetailProvider(widget.itemId!)),
+          backgroundColor: AppColors.blush,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            leading: IconButton(
+              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back_ios_new),
+            ),
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    err is ApiException ? err.message : 'Erro ao carregar',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () =>
+                        ref.invalidate(clothingDetailProvider(widget.itemId!)),
+                    child: const Text('Tentar de novo'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -210,167 +261,349 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
 
   Widget _buildForm(BuildContext context) {
     return Scaffold(
-      body: PastelBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
-                child: Row(
-                  children: [
-                    SoftIconButton(
-                      icon: LucideIcons.arrowLeft,
-                      onPressed: () => context.pop(),
+      backgroundColor: AppColors.blush,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 16, 0),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => context.pop(),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.ink,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
                       widget.isEditing ? 'Editar peça' : 'Nova peça',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                      style: GoogleFonts.nunito(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.ink,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                  children: [
+                    GestureDetector(
+                      onTap: _showPickerSheet,
+                      child: AspectRatio(
+                        aspectRatio: 1.2,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (_foto != null)
+                                  Image.file(_foto!, fit: BoxFit.cover)
+                                else if (_existingFotoUrl != null &&
+                                    _existingFotoUrl!.isNotEmpty)
+                                  CachedNetworkImage(
+                                    imageUrl: _existingFotoUrl!,
+                                    fit: BoxFit.cover,
+                                  )
+                                else
+                                  Container(
+                                    color: AppColors.chip,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.add_a_photo_outlined,
+                                          size: 42,
+                                          color: AppColors.roseDeep,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          'Adicionar foto',
+                                          style: GoogleFonts.nunito(
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.inkSoft,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Galeria ou câmera',
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 12,
+                                            color: AppColors.inkSoft,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                Positioned(
+                                  right: 12,
+                                  bottom: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.camera_alt_outlined,
+                                          size: 16,
+                                          color: AppColors.roseDeep,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _foto != null ||
+                                                  (_existingFotoUrl?.isNotEmpty ??
+                                                      false)
+                                              ? 'Trocar'
+                                              : 'Foto',
+                                          style: GoogleFonts.nunito(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'NOME',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _nomeCtrl,
+                      decoration: _fieldDecoration(
+                        label: 'Nome da peça *',
+                        hint: 'Ex: Jaqueta Jeans Oversized',
+                        icon: Icons.checkroom_outlined,
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().length < 2) {
+                          return 'Nome com no mínimo 2 caracteres';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'CATEGORIA',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: clothingCategories.map((c) {
+                        final selected = _categoria == c;
+                        return ChoiceChip(
+                          label: Text(c),
+                          selected: selected,
+                          onSelected: (_) => setState(() => _categoria = c),
+                          selectedColor: AppColors.pinkChip,
+                          backgroundColor: Colors.white,
+                          labelStyle: GoogleFonts.nunito(
+                            color: selected ? Colors.white : AppColors.ink,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          side: BorderSide(
+                            color: selected ? AppColors.pinkChip : AppColors.chip,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'COR',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  letterSpacing: 1,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.inkSoft,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _corCtrl,
+                                decoration: _fieldDecoration(
+                                  label: 'Cor',
+                                  icon: Icons.palette_outlined,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TAMANHO',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 11,
+                                  letterSpacing: 1,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.inkSoft,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _tamanhoCtrl,
+                                decoration: _fieldDecoration(
+                                  label: 'Tam.',
+                                  icon: Icons.straighten,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'MARCA',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _marcaCtrl,
+                      decoration: _fieldDecoration(
+                        label: 'Marca',
+                        hint: 'Ex: Levi\'s',
+                        icon: Icons.storefront_outlined,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'OBSERVAÇÃO',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        letterSpacing: 1,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _obsCtrl,
+                      maxLines: 4,
+                      decoration: _fieldDecoration(
+                        label: 'Observação',
+                        hint: 'Combina com… onde comprou…',
+                      ).copyWith(alignLabelWithHint: true),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        _error!,
+                        style: GoogleFonts.nunito(
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 22),
+                    FilledButton(
+                      onPressed: _loading ? null : _submit,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.pinkChip,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              widget.isEditing
+                                  ? 'Salvar alterações'
+                                  : 'Adicionar ao closet',
+                              style: GoogleFonts.nunito(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
+                            ),
+                    ),
+                    if (widget.isEditing) ...[
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: _loading ? null : () => context.pop(),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                    children: [
-                      GestureDetector(
-                        onTap: _showPickerSheet,
-                        child: AspectRatio(
-                          aspectRatio: 1.15,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: AppColors.card.withValues(alpha: 0.9),
-                              borderRadius: BorderRadius.circular(28),
-                              border: Border.all(
-                                color: AppColors.apricot.withValues(alpha: 0.7),
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(28),
-                              child: _foto != null
-                                  ? Image.file(_foto!, fit: BoxFit.cover)
-                                  : _existingFotoUrl != null &&
-                                          _existingFotoUrl!.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: _existingFotoUrl!,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : const Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              LucideIcons.imagePlus,
-                                              size: 40,
-                                              color: AppColors.roseDeep,
-                                            ),
-                                            SizedBox(height: 10),
-                                            Text('Adicionar foto fofa'),
-                                          ],
-                                        ),
-                            ),
-                          ),
-                        ),
-                      )
-                          .animate()
-                          .fadeIn(duration: 350.ms)
-                          .scale(
-                            begin: const Offset(0.97, 0.97),
-                            end: const Offset(1, 1),
-                          ),
-                      const SizedBox(height: 18),
-                      TextFormField(
-                        controller: _nomeCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Nome *',
-                          prefixIcon: Icon(LucideIcons.tag),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().length < 2) {
-                            return 'Nome com no mínimo 2 caracteres';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      DropdownButtonFormField<String>(
-                        // ignore: deprecated_member_use
-                        value: _categoria,
-                        decoration: const InputDecoration(
-                          labelText: 'Categoria *',
-                          prefixIcon: Icon(LucideIcons.tags),
-                        ),
-                        items: clothingCategories
-                            .map(
-                              (c) => DropdownMenuItem(value: c, child: Text(c)),
-                            )
-                            .toList(),
-                        onChanged: (v) => setState(() => _categoria = v),
-                        validator: (v) => v == null || v.isEmpty
-                            ? 'Selecione uma categoria'
-                            : null,
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _corCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Cor',
-                          prefixIcon: Icon(LucideIcons.palette),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _tamanhoCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Tamanho',
-                          prefixIcon: Icon(LucideIcons.ruler),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _marcaCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Marca',
-                          prefixIcon: Icon(LucideIcons.store),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _obsCtrl,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Observação',
-                          alignLabelWithHint: true,
-                          prefixIcon: Icon(LucideIcons.notebook),
-                        ),
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 12),
-                        Text(
-                          _error!,
-                          style: const TextStyle(color: AppColors.danger),
-                        ),
-                      ],
-                      const SizedBox(height: 22),
-                      SoftPrimaryButton(
-                        label: widget.isEditing ? 'Salvar' : 'Adicionar ao closet',
-                        icon: LucideIcons.heart,
-                        loading: _loading,
-                        onPressed: _submit,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
