@@ -1,21 +1,10 @@
-import 'package:flutter/material.dart'
-    hide
-        Badge,
-        ButtonStyle,
-        Card,
-        Chip,
-        CircularProgressIndicator,
-        ColorScheme,
-        Theme,
-        ThemeData;
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/ui_kit.dart';
 import 'auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -42,12 +31,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _error = null);
-
     await ref.read(authProvider.notifier).login(
           email: _emailCtrl.text.trim(),
           senha: _senhaCtrl.text,
         );
-
     final auth = ref.read(authProvider);
     if (auth.hasError) {
       final err = auth.error;
@@ -58,7 +45,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
       return;
     }
-
     if (auth.value?.isAuthenticated == true && mounted) {
       context.go('/roupas');
     }
@@ -69,11 +55,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final loading = ref.watch(authProvider).isLoading;
 
     return Scaffold(
-      body: PastelBackground(
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+      body: Column(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFF2A0B8), Color(0xFFE891B0), Color(0xFFD9A0C8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.checkroom, color: Colors.white, size: 30),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Closet da Elisa',
+                      style: GoogleFonts.nunito(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Bem-vinda de volta 👋',
+                      style: GoogleFonts.nunito(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Container(
+              width: double.infinity,
+              transform: Matrix4.translationValues(0, -24, 0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+              ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                 child: Form(
@@ -81,99 +119,164 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const BrandMark(),
-                      const SizedBox(height: 28),
-                      Card(
-                        filled: true,
-                        fillColor: AppColors.card.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(28),
-                        padding: const EdgeInsets.all(22),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.chip,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              'Bem-vinda de volta',
-                              style: GoogleFonts.nunito(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.ink,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Entre para abrir o Closet da Elisa',
-                              style: GoogleFonts.nunito(
-                                color: AppColors.inkSoft,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 22),
-                            TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                labelText: 'E-mail',
-                                prefixIcon: Icon(LucideIcons.mail),
-                              ),
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) {
-                                  return 'Informe o e-mail';
-                                }
-                                if (!v.contains('@')) return 'E-mail inválido';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 14),
-                            TextFormField(
-                              controller: _senhaCtrl,
-                              obscureText: _obscure,
-                              decoration: InputDecoration(
-                                labelText: 'Senha',
-                                prefixIcon: const Icon(LucideIcons.lock),
-                                suffixIcon: IconButton(
-                                  onPressed: () =>
-                                      setState(() => _obscure = !_obscure),
-                                  icon: Icon(
-                                    _obscure
-                                        ? LucideIcons.eye
-                                        : LucideIcons.eyeOff,
-                                  ),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: () {},
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: AppColors.ink,
                                 ),
+                                child: const Text('Entrar'),
                               ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) {
-                                  return 'Informe a senha';
-                                }
-                                return null;
-                              },
                             ),
-                            if (_error != null) ...[
-                              const SizedBox(height: 14),
-                              Text(
-                                _error!,
-                                style: const TextStyle(color: AppColors.danger),
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => context.go('/register'),
+                                child: const Text('Cadastrar'),
                               ),
-                            ],
-                            const SizedBox(height: 22),
-                            SoftPrimaryButton(
-                              label: 'Entrar',
-                              icon: LucideIcons.arrowRight,
-                              loading: loading,
-                              onPressed: _submit,
                             ),
                           ],
                         ),
-                      )
-                          .animate()
-                          .fadeIn(delay: 120.ms, duration: 450.ms)
-                          .slideY(begin: 0.08, end: 0),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: GhostButton(
-                          onPressed:
-                              loading ? null : () => context.push('/register'),
-                          child: const Text('Criar conta nova'),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'E-MAIL',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.inkSoft,
                         ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (v) =>
+                            (v == null || !v.contains('@')) ? 'E-mail inválido' : null,
+                        decoration: const InputDecoration(
+                          hintText: 'elisa@email.com',
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'SENHA',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          letterSpacing: 1,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.inkSoft,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _senhaCtrl,
+                        obscureText: _obscure,
+                        validator: (v) =>
+                            (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
+                        decoration: InputDecoration(
+                          hintText: '********',
+                          suffixIcon: IconButton(
+                            onPressed: () => setState(() => _obscure = !_obscure),
+                            icon: Icon(
+                              _obscure ? Icons.visibility_off : Icons.visibility,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Em breve')),
+                            );
+                          },
+                          child: const Text('Esqueci minha senha'),
+                        ),
+                      ),
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(color: AppColors.danger),
+                          ),
+                        ),
+                      FilledButton(
+                        onPressed: loading ? null : _submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.roseDeep,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: loading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Entrar no Closet →',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/register'),
+                        child: const Text('Novo aqui? Criar conta'),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'OU CONTINUE COM',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          letterSpacing: 1,
+                          color: AppColors.inkSoft,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Login social em breve')),
+                                );
+                              },
+                              child: const Text('Apple'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Login social em breve')),
+                                );
+                              },
+                              child: const Text('Google'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -181,7 +284,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

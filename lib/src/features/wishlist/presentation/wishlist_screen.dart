@@ -1,14 +1,5 @@
-import 'package:flutter/material.dart'
-    hide
-        Badge,
-        ButtonStyle,
-        Card,
-        Chip,
-        CircularProgressIndicator,
-        ColorScheme,
-        Theme,
-        ThemeData;
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/categories.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/ui_kit.dart';
 import '../data/models/wishlist_item.dart';
 import 'wishlist_provider.dart';
 
@@ -28,127 +18,94 @@ class WishlistScreen extends ConsumerStatefulWidget {
 }
 
 class _WishlistScreenState extends ConsumerState<WishlistScreen> {
-  Future<void> _showCreateDialog() async {
+  Future<void> _addDesejo() async {
     final nomeCtrl = TextEditingController();
     final precoCtrl = TextEditingController();
-    final linkCtrl = TextEditingController();
-    final obsCtrl = TextEditingController();
-    String? categoria = clothingCategories.first;
-    var prioridade = 0;
+    String categoria = clothingCategories.first;
+    int prioridade = 1;
 
-    final saved = await showDialog<bool>(
+    final ok = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setLocal) {
-            return AlertDialog(
-              title: const Text('Novo desejo'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nomeCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome *',
-                        prefixIcon: Icon(LucideIcons.heart),
-                      ),
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            20 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: StatefulBuilder(
+            builder: (context, setModal) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Novo desejo',
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                     ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      // ignore: deprecated_member_use
-                      value: categoria,
-                      decoration: const InputDecoration(
-                        labelText: 'Categoria *',
-                        prefixIcon: Icon(LucideIcons.tags),
-                      ),
-                      items: clothingCategories
-                          .map(
-                            (c) => DropdownMenuItem(value: c, child: Text(c)),
-                          )
-                          .toList(),
-                      onChanged: (v) => setLocal(() => categoria = v),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: precoCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Preço alvo',
-                        prefixIcon: Icon(LucideIcons.banknote),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: linkCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Link',
-                        prefixIcon: Icon(LucideIcons.link),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      // ignore: deprecated_member_use
-                      value: prioridade,
-                      decoration: const InputDecoration(
-                        labelText: 'Prioridade',
-                        prefixIcon: Icon(LucideIcons.star),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 0, child: Text('Baixa')),
-                        DropdownMenuItem(value: 1, child: Text('Média')),
-                        DropdownMenuItem(value: 2, child: Text('Alta')),
-                      ],
-                      onChanged: (v) => setLocal(() => prioridade = v ?? 0),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: obsCtrl,
-                      maxLines: 2,
-                      decoration: const InputDecoration(
-                        labelText: 'Observação',
-                        prefixIcon: Icon(LucideIcons.notebook),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Salvar'),
-                ),
-              ],
-            );
-          },
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: nomeCtrl,
+                    decoration: const InputDecoration(labelText: 'Nome'),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    value: categoria,
+                    items: clothingCategories
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (v) => setModal(() => categoria = v ?? categoria),
+                    decoration: const InputDecoration(labelText: 'Categoria'),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: precoCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Preço alvo'),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    value: prioridade,
+                    items: const [
+                      DropdownMenuItem(value: 0, child: Text('Baixa')),
+                      DropdownMenuItem(value: 1, child: Text('Média')),
+                      DropdownMenuItem(value: 2, child: Text('Alta')),
+                    ],
+                    onChanged: (v) => setModal(() => prioridade = v ?? 1),
+                    decoration: const InputDecoration(labelText: 'Prioridade'),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Salvar'),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
 
-    if (saved != true) return;
-    if (nomeCtrl.text.trim().length < 2 || categoria == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nome e categoria são obrigatórios')),
-      );
-      return;
-    }
+    if (ok != true || !mounted) return;
+    final nome = nomeCtrl.text.trim();
+    if (nome.length < 2) return;
 
+    final preco = double.tryParse(precoCtrl.text.replaceAll(',', '.'));
     try {
       await ref.read(wishlistProvider.notifier).create({
-        'nome': nomeCtrl.text.trim(),
+        'nome': nome,
         'categoria': categoria,
-        if (precoCtrl.text.trim().isNotEmpty)
-          'precoAlvo': double.tryParse(
-            precoCtrl.text.trim().replaceAll(',', '.'),
-          ),
-        if (linkCtrl.text.trim().isNotEmpty) 'linkRef': linkCtrl.text.trim(),
         'prioridade': prioridade,
-        if (obsCtrl.text.trim().isNotEmpty) 'observacao': obsCtrl.text.trim(),
+        if (preco != null) 'precoAlvo': preco,
       });
     } catch (e) {
       if (!mounted) return;
@@ -165,272 +122,317 @@ class _WishlistScreenState extends ConsumerState<WishlistScreen> {
       await ref.read(wishlistProvider.notifier).moverParaCloset(item.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.nome} entrou no closet'),
-          action: SnackBarAction(
-            label: 'Ver',
-            onPressed: () => context.go('/roupas'),
-          ),
-        ),
+        const SnackBar(content: Text('Movido para o closet!')),
       );
     } on ApiException catch (e) {
       if (e.code == 'DESEJO_SEM_CATEGORIA') {
-        final categoria = await _askCategoria();
-        if (categoria == null) return;
-        try {
-          await ref.read(wishlistProvider.notifier).moverParaCloset(
-                item.id,
-                categoria: categoria,
-              );
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${item.nome} entrou no closet')),
-          );
-        } catch (err) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                err is ApiException ? err.message : 'Erro ao mover',
-              ),
+        String cat = clothingCategories.first;
+        final picked = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Escolha a categoria'),
+            content: DropdownButtonFormField<String>(
+              value: cat,
+              items: clothingCategories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) => cat = v ?? cat,
             ),
-          );
-        }
-        return;
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, cat),
+                child: const Text('Mover'),
+              ),
+            ],
+          ),
+        );
+        if (picked == null) return;
+        await ref
+            .read(wishlistProvider.notifier)
+            .moverParaCloset(item.id, categoria: picked);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Movido para o closet!')),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
       }
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao mover desejo')),
-      );
     }
   }
 
-  Future<String?> _askCategoria() async {
-    String? selected = clothingCategories.first;
-    return showDialog<String>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setLocal) {
-            return AlertDialog(
-              title: const Text('Categoria necessária'),
-              content: DropdownButtonFormField<String>(
-                // ignore: deprecated_member_use
-                value: selected,
-                decoration: const InputDecoration(
-                  labelText: 'Categoria',
-                  prefixIcon: Icon(LucideIcons.tags),
+  String _prioLabel(int p) => switch (p) {
+        2 => 'Alta',
+        1 => 'Média',
+        _ => 'Baixa',
+      };
+
+  Color _prioColor(int p) => switch (p) {
+        2 => const Color(0xFFFFB4B4),
+        1 => AppColors.butter,
+        _ => const Color(0xFFB8D4FF),
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(wishlistProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.blush,
+      body: SafeArea(
+        child: async.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(
+            child: Text(err is ApiException ? err.message : 'Erro'),
+          ),
+          data: (items) {
+            final totalAlvo = items.fold<double>(
+              0,
+              (a, b) => a + (b.precoAlvo ?? 0),
+            );
+            final economizado = totalAlvo * 0.4;
+            final progresso = totalAlvo == 0 ? 0.0 : 0.6;
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+              children: [
+                Text(
+                  'Lista de Desejos ✨',
+                  style: GoogleFonts.nunito(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                items: clothingCategories
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) => setLocal(() => selected = v),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
+                Text(
+                  '${items.length} itens · meta R\$ ${totalAlvo.toStringAsFixed(0)}',
+                  style: GoogleFonts.nunito(color: AppColors.inkSoft),
                 ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context, selected),
-                  child: const Text('Continuar'),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: CircularProgressIndicator(
+                          value: progresso,
+                          strokeWidth: 8,
+                          backgroundColor: AppColors.chip,
+                          color: AppColors.purpleBar,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Poupança estimada',
+                              style: GoogleFonts.nunito(
+                                color: AppColors.inkSoft,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'R\$ ${economizado.toStringAsFixed(0)} / R\$ ${totalAlvo.toStringAsFixed(0)}',
+                              style: GoogleFonts.nunito(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: AppColors.chip,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => context.go('/roupas'),
+                          child: const Text('👤 Meu Closet'),
+                        ),
+                      ),
+                      Expanded(
+                        child: FilledButton(
+                          onPressed: () {},
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.butter,
+                            foregroundColor: AppColors.ink,
+                          ),
+                          child: const Text('✨ Desejos'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...items.map((item) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: SizedBox(
+                            width: 56,
+                            height: 56,
+                            child: item.fotoUrl != null
+                                ? CachedNetworkImage(
+                                    imageUrl: item.fotoUrl!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: AppColors.chip,
+                                    child: const Icon(Icons.favorite_border),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 6,
+                                children: [
+                                  if (item.categoria != null)
+                                    _MiniTag(
+                                      item.categoria!,
+                                      AppColors.softTag(item.categoria),
+                                    ),
+                                  _MiniTag(
+                                    '★ ${_prioLabel(item.prioridade)}',
+                                    _prioColor(item.prioridade),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                item.nome,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              if (item.precoAlvo != null)
+                                Text(
+                                  'R\$ ${item.precoAlvo!.toStringAsFixed(0)}',
+                                  style: GoogleFonts.nunito(
+                                    color: AppColors.inkSoft,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: 34,
+                              child: FilledButton(
+                                onPressed: () => _mover(item),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.lilacDeep,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  textStyle: GoogleFonts.nunito(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                child: const Text('Ao closet'),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => ref
+                                  .read(wishlistProvider.notifier)
+                                  .delete(item.id),
+                              icon: const Icon(Icons.delete_outline, size: 20),
+                              color: AppColors.danger,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: _addDesejo,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.roseDeep,
+                    side: BorderSide(
+                      color: AppColors.roseDeep.withValues(alpha: 0.45),
+                      width: 1.4,
+                      style: BorderStyle.solid,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: Text(
+                    '+ Adicionar novo desejo',
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
+                  ),
                 ),
               ],
             );
           },
-        );
-      },
-    );
-  }
-
-  Future<void> _delete(WishlistItem item) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Excluir desejo'),
-        content: Text('Excluir "${item.nome}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
-          ),
-        ],
+        ),
       ),
     );
-    if (ok != true) return;
-    await ref.read(wishlistProvider.notifier).delete(item.id);
   }
+}
+
+class _MiniTag extends StatelessWidget {
+  const _MiniTag(this.label, this.color);
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final asyncList = ref.watch(wishlistProvider);
-
-    return Scaffold(
-      body: PastelBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 16, 8),
-                child: Row(
-                  children: [
-                    SoftIconButton(
-                      icon: LucideIcons.arrowLeft,
-                      onPressed: () => context.pop(),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Wishlist',
-                            style: GoogleFonts.playfairDisplay(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
-                            ),
-                          ),
-                          Text(
-                            'peças que a Elisa sonha',
-                            style: GoogleFonts.nunito(
-                              color: AppColors.inkSoft,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: asyncList.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (err, _) => SoftErrorView(
-                    message:
-                        err is ApiException ? err.message : 'Erro ao carregar',
-                    onRetry: () =>
-                        ref.read(wishlistProvider.notifier).refresh(),
-                  ),
-                  data: (items) {
-                    if (items.isEmpty) {
-                      return RefreshIndicator(
-                        color: AppColors.roseDeep,
-                        onRefresh: () =>
-                            ref.read(wishlistProvider.notifier).refresh(),
-                        child: ListView(
-                          children: const [
-                            SizedBox(height: 80),
-                            EmptyStateView(
-                              icon: LucideIcons.heart,
-                              title: 'Nenhum desejo ainda',
-                              subtitle:
-                                  'Guarde aqui as peças que você quer conquistar',
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return RefreshIndicator(
-                      color: AppColors.roseDeep,
-                      onRefresh: () =>
-                          ref.read(wishlistProvider.notifier).refresh(),
-                      child: ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                        itemCount: items.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.card.withValues(alpha: 0.95),
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.apricot.withValues(alpha: 0.18),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.fromLTRB(
-                                16,
-                                10,
-                                8,
-                                10,
-                              ),
-                              leading: CircleAvatar(
-                                backgroundColor: AppColors.chip,
-                                child: Icon(
-                                  LucideIcons.heart,
-                                  color: item.prioridade >= 2
-                                      ? AppColors.roseDeep
-                                      : AppColors.lilacDeep,
-                                ),
-                              ),
-                              title: Text(
-                                item.nome,
-                                style: GoogleFonts.nunito(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.ink,
-                                ),
-                              ),
-                              subtitle: Text(
-                                [
-                                  item.categoria ?? 'Sem categoria',
-                                  if (item.precoAlvo != null)
-                                    'R\$ ${item.precoAlvo!.toStringAsFixed(2)}',
-                                ].join(' · '),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SoftIconButton(
-                                    tooltip: 'Mover para closet',
-                                    icon: LucideIcons.shirt,
-                                    filled: true,
-                                    onPressed: () => _mover(item),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  SoftIconButton(
-                                    tooltip: 'Excluir',
-                                    icon: LucideIcons.trash2,
-                                    onPressed: () => _delete(item),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                              .animate(delay: (40 * index).ms)
-                              .fadeIn(duration: 350.ms)
-                              .slideX(begin: 0.05, end: 0);
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateDialog,
-        icon: const Icon(LucideIcons.plus),
-        label: const Text('Novo desejo'),
+      child: Text(
+        label,
+        style: GoogleFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800),
       ),
     );
   }

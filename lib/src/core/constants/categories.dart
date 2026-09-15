@@ -5,5 +5,6 @@ const clothingCategories = <String>[
   'Jaqueta',
   'Sapato',
   'Acessório',
+  'Conjunto',
   'Outro',
 ];
