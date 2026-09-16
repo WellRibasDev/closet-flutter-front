@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Paleta do mock: rosa, lavanda, amarelo, branco.
 abstract final class AppColors {
-  static const blush = Color(0xFFFBF7FA);
-  static const blushDeep = Color(0xFFF3E6EE);
+  // Rosa pastel base (#FFD1DC)
+  static const blush = Color(0xFFFFD1DC);
+  static const blushDeep = Color(0xFFFFC0D0);
   static const petal = Color(0xFFF4C2D0);
   static const rose = Color(0xFFF0A0B5);
   static const roseDeep = Color(0xFFE07A9A);

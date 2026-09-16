@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_feedback.dart';
 import '../../auth/presentation/auth_provider.dart';
 import '../../wardrobe/presentation/wardrobe_provider.dart';
 import '../../wishlist/presentation/wishlist_provider.dart';
@@ -33,7 +34,7 @@ class ProfileScreen extends ConsumerWidget {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-      backgroundColor: AppColors.blush,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -102,11 +103,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Edição de perfil em breve')),
-                          );
-                        },
+                        onPressed: () => AppToast.comingSoon(context, 'Edição de perfil'),
                         style: TextButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.ink,
@@ -194,21 +191,21 @@ class ProfileScreen extends ConsumerWidget {
               color: const Color(0xFFE8B84A),
               title: 'Notificações',
               subtitle: 'Mantenha-se informado',
-              onTap: () => _soon(context),
+              onTap: () => _soon(context, 'Notificações'),
             ),
             _MenuTile(
               icon: Icons.palette_outlined,
               color: AppColors.pinkChip,
               title: 'Aparência',
               subtitle: 'Troque o tema e estilo',
-              onTap: () => _soon(context),
+              onTap: () => _soon(context, 'Aparência'),
             ),
             _MenuTile(
               icon: Icons.cloud_outlined,
               color: const Color(0xFF5B8DEF),
               title: 'Backup & Exportar',
               subtitle: 'Salve seus dados na nuvem',
-              onTap: () => _soon(context),
+              onTap: () => _soon(context, 'Backup'),
             ),
             _MenuTile(
               icon: Icons.logout,
@@ -226,10 +223,8 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _soon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Em breve')),
-    );
+  void _soon(BuildContext context, [String? feature]) {
+    AppToast.comingSoon(context, feature);
   }
 }
 

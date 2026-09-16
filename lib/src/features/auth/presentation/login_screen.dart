@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_feedback.dart';
 import 'auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -31,22 +32,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _error = null);
-    await ref.read(authProvider.notifier).login(
-          email: _emailCtrl.text.trim(),
-          senha: _senhaCtrl.text,
-        );
-    final auth = ref.read(authProvider);
-    if (auth.hasError) {
-      final err = auth.error;
-      setState(() {
-        _error = err is ApiException
-            ? err.message
-            : 'Não foi possível entrar. Tente novamente.';
-      });
-      return;
-    }
-    if (auth.value?.isAuthenticated == true && mounted) {
-      context.go('/roupas');
+    AppLoading.show(context, message: 'Entrando...');
+    try {
+      await ref.read(authProvider.notifier).login(
+            email: _emailCtrl.text.trim(),
+            senha: _senhaCtrl.text,
+          );
+      final auth = ref.read(authProvider);
+      if (auth.hasError) {
+        final err = auth.error;
+        setState(() {
+          _error = err is ApiException
+              ? err.message
+              : 'Não foi possível entrar. Tente novamente.';
+        });
+        return;
+      }
+      if (auth.value?.isAuthenticated == true && mounted) {
+        context.go('/roupas');
+      }
+    } finally {
+      AppLoading.hide();
     }
   }
 
@@ -195,11 +201,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Em breve')),
-                            );
-                          },
+                          onPressed: () => AppToast.comingSoon(
+                            context,
+                            'Recuperação de senha',
+                          ),
                           child: const Text('Esqueci minha senha'),
                         ),
                       ),
@@ -240,43 +245,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       TextButton(
                         onPressed: () => context.go('/register'),
                         child: const Text('Novo aqui? Criar conta'),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'OU CONTINUE COM',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          letterSpacing: 1,
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Login social em breve')),
-                                );
-                              },
-                              child: const Text('Apple'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Login social em breve')),
-                                );
-                              },
-                              child: const Text('Google'),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

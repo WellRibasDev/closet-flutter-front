@@ -46,6 +46,7 @@ dependencies:
   flutter_animate: ^4.5.2
   shadcn_flutter: ^0.0.54
   shadcn_flutter_material: ^0.0.54
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

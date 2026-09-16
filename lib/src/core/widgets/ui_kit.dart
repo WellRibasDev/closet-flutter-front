@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart'
     hide
         Column,
+        Colors,
         Flex,
         Flexible,
         Positioned,
@@ -47,54 +48,119 @@ class PastelBackground extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            AppColors.blush,
-            Color(0xFFFFE4EF),
-            AppColors.blushDeep,
-            Color(0xFFFCE8F2),
+            Color(0xFFFFD1DC),
+            Color(0xFFFFDCE6),
+            Color(0xFFFFD1DC),
           ],
-          stops: [0.0, 0.35, 0.7, 1.0],
         ),
       ),
       child: Stack(
         children: [
+          // nuvens suaves
           Positioned(
-            top: -60,
-            right: -40,
+            top: 40,
+            left: -20,
+            child: _Cloud(width: 120, opacity: 0.35),
+          ),
+          Positioned(
+            top: 110,
+            right: -30,
+            child: _Cloud(width: 150, opacity: 0.28),
+          ),
+          Positioned(
+            bottom: 160,
+            left: 40,
+            child: _Cloud(width: 100, opacity: 0.22),
+          ),
+          // estrelinhas discretas
+          Positioned(top: 70, right: 48, child: _Star(size: 10)),
+          Positioned(top: 160, left: 36, child: _Star(size: 8)),
+          Positioned(top: 240, right: 72, child: _Star(size: 7)),
+          Positioned(bottom: 280, left: 72, child: _Star(size: 9)),
+          Positioned(bottom: 200, right: 40, child: _Star(size: 8)),
+          Positioned(
+            top: -50,
+            right: -30,
             child: _Blob(
-              size: 180,
-              color: AppColors.petal.withValues(alpha: 0.42),
+              size: 160,
+              color: Colors.white.withValues(alpha: 0.22),
             ),
           ),
           Positioned(
-            bottom: 80,
-            left: -50,
+            bottom: 60,
+            left: -40,
             child: _Blob(
-              size: 150,
-              color: AppColors.lilac.withValues(alpha: 0.28),
-            ),
-          ),
-          Positioned(
-            top: 200,
-            left: 28,
-            child: _Blob(
-              size: 64,
-              color: AppColors.butter.withValues(alpha: 0.30),
-            ),
-          ),
-          Positioned(
-            bottom: 220,
-            right: 24,
-            child: _Blob(
-              size: 56,
-              color: AppColors.apricot.withValues(alpha: 0.28),
+              size: 140,
+              color: AppColors.lilac.withValues(alpha: 0.18),
             ),
           ),
           child,
         ],
       ),
+    );
+  }
+}
+
+class _Cloud extends StatelessWidget {
+  const _Cloud({required this.width, required this.opacity});
+  final double width;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: opacity,
+      child: SizedBox(
+        width: width,
+        height: width * 0.45,
+        child: Stack(
+          children: [
+            Positioned(
+              left: width * 0.18,
+              bottom: 0,
+              child: _puff(width * 0.55, width * 0.35),
+            ),
+            Positioned(
+              left: 0,
+              bottom: width * 0.05,
+              child: _puff(width * 0.4, width * 0.28),
+            ),
+            Positioned(
+              right: 0,
+              bottom: width * 0.06,
+              child: _puff(width * 0.42, width * 0.3),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _puff(double w, double h) {
+    return Container(
+      width: w,
+      height: h,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _Star extends StatelessWidget {
+  const _Star({required this.size});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      Icons.star_rounded,
+      size: size,
+      color: Colors.white.withValues(alpha: 0.55),
     );
   }
 }

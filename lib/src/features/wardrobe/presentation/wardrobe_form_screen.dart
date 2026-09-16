@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/categories.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_feedback.dart';
 import '../data/models/clothing_item.dart';
 import 'wardrobe_provider.dart';
 
@@ -140,6 +141,10 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
       _loading = true;
       _error = null;
     });
+    AppLoading.show(
+      context,
+      message: widget.isEditing ? 'Salvando peça...' : 'Adicionando peça...',
+    );
 
     final body = <String, dynamic>{
       'nome': _nomeCtrl.text.trim(),
@@ -164,12 +169,20 @@ class _WardrobeFormScreenState extends ConsumerState<WardrobeFormScreen> {
       } else {
         await notifier.create(body: body, foto: _foto);
       }
-      if (mounted) context.go('/roupas');
+      if (mounted) {
+        AppToast.show(
+          context,
+          message: widget.isEditing ? 'Peça atualizada' : 'Peça adicionada',
+          icon: Icons.check_circle_outline,
+        );
+        context.go('/roupas');
+      }
     } catch (e) {
       setState(() {
         _error = e is ApiException ? e.message : 'Erro ao salvar peça';
       });
     } finally {
+      AppLoading.hide();
       if (mounted) setState(() => _loading = false);
     }
   }

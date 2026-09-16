@@ -61,7 +61,7 @@ class _WardrobeListScreenState extends ConsumerState<WardrobeListScreen> {
     final wishlistCount = ref.watch(wishlistProvider).value?.length ?? 0;
 
     return Scaffold(
-      backgroundColor: AppColors.blush,
+      backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/roupas/nova'),
         backgroundColor: AppColors.pinkChip,
