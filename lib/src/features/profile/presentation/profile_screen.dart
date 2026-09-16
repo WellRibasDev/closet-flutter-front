@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_feedback.dart';
 import '../../auth/presentation/auth_provider.dart';
@@ -30,14 +31,14 @@ class ProfileScreen extends ConsumerWidget {
       byCat[item.categoria] = (byCat[item.categoria] ?? 0) + 1;
     }
     final totalCat = byCat.values.fold<int>(0, (a, b) => a + b);
-    final bars = byCat.entries.toList()
+    final top = byCat.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           children: [
             Container(
               padding: const EdgeInsets.all(18),
@@ -57,7 +58,11 @@ class ProfileScreen extends ConsumerWidget {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor: Colors.white.withValues(alpha: 0.85),
-                        child: const Icon(Icons.person, color: AppColors.roseDeep, size: 32),
+                        child: const Icon(
+                          Icons.person,
+                          color: AppColors.roseDeep,
+                          size: 32,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -103,7 +108,8 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () => AppToast.comingSoon(context, 'Edição de perfil'),
+                        onPressed: () =>
+                            AppToast.comingSoon(context, 'Edição de perfil'),
                         style: TextButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.ink,
@@ -128,86 +134,109 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 22),
-            Text(
-              'GUIA DE ESTILO',
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w800,
-                color: AppColors.inkSoft,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (bars.isEmpty)
-              Text(
-                'Adicione peças para ver a distribuição.',
-                style: GoogleFonts.nunito(color: AppColors.inkSoft),
-              )
-            else
-              ...bars.take(4).map((e) {
-                final pct = totalCat == 0 ? 0.0 : e.value / totalCat;
-                final color = AppColors.softTag(e.key);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
+            const SizedBox(height: 18),
+            Material(
+              color: Colors.white.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(22),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: () => context.push('/perfil/guia-estilo'),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 72,
-                        child: Text(
-                          e.key,
-                          style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                      Row(
+                        children: [
+                          Text(
+                            'Guia de estilo',
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: pct,
-                            minHeight: 10,
-                            backgroundColor: AppColors.chip,
-                            color: color,
+                          const Spacer(),
+                          Text(
+                            'Ver completo',
+                            style: GoogleFonts.nunito(
+                              color: AppColors.roseDeep,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
                           ),
-                        ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.roseDeep,
+                            size: 20,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(height: 6),
                       Text(
-                        '${(pct * 100).round()}%',
+                        totalCat == 0
+                            ? 'Adicione peças para ver a distribuição do seu closet.'
+                            : 'Resumo das categorias do seu closet',
                         style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
+                          color: AppColors.inkSoft,
+                          fontSize: 12,
                         ),
                       ),
+                      if (top.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: top.take(3).map((e) {
+                            final pct =
+                                totalCat == 0 ? 0 : ((e.value / totalCat) * 100).round();
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.softTag(e.key),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '${e.key} $pct%',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ],
                   ),
-                );
-              }),
-            const SizedBox(height: 18),
-            _MenuTile(
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _MenuCard(
               icon: Icons.notifications_none,
               color: const Color(0xFFE8B84A),
               title: 'Notificações',
               subtitle: 'Mantenha-se informado',
-              onTap: () => _soon(context, 'Notificações'),
+              onTap: () => AppToast.comingSoon(context, 'Notificações'),
             ),
-            _MenuTile(
+            _MenuCard(
               icon: Icons.palette_outlined,
               color: AppColors.pinkChip,
               title: 'Aparência',
               subtitle: 'Troque o tema e estilo',
-              onTap: () => _soon(context, 'Aparência'),
+              onTap: () => AppToast.comingSoon(context, 'Aparência'),
             ),
-            _MenuTile(
+            _MenuCard(
               icon: Icons.cloud_outlined,
               color: const Color(0xFF5B8DEF),
               title: 'Backup & Exportar',
               subtitle: 'Salve seus dados na nuvem',
-              onTap: () => _soon(context, 'Backup'),
+              onTap: () => AppToast.comingSoon(context, 'Backup'),
             ),
-            _MenuTile(
+            _MenuCard(
               icon: Icons.logout,
               color: AppColors.danger,
               title: 'Sair',
@@ -222,10 +251,6 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
   }
-
-  void _soon(BuildContext context, [String? feature]) {
-    AppToast.comingSoon(context, feature);
-  }
 }
 
 class _StatMini extends StatelessWidget {
@@ -238,7 +263,7 @@ class _StatMini extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
+          color: Colors.white.withValues(alpha: 0.75),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
@@ -251,8 +276,8 @@ class _StatMini extends StatelessWidget {
   }
 }
 
-class _MenuTile extends StatelessWidget {
-  const _MenuTile({
+class _MenuCard extends StatelessWidget {
+  const _MenuCard({
     required this.icon,
     required this.color,
     required this.title,
@@ -268,22 +293,49 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.18),
-        child: Icon(icon, color: color),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(20),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: color.withValues(alpha: 0.18),
+                  child: Icon(icon, color: color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
+                      ),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.nunito(
+                          color: AppColors.inkSoft,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: AppColors.inkSoft),
+              ],
+            ),
+          ),
+        ),
       ),
-      title: Text(
-        title,
-        style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.nunito(color: AppColors.inkSoft, fontSize: 12),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.inkSoft),
     );
   }
 }

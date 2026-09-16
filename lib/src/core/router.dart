@@ -8,6 +8,7 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/profile/presentation/style_guide_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_detail_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_form_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_list_screen.dart';
@@ -88,6 +89,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/perfil/guia-estilo',
+        builder: (context, state) => const StyleGuideScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,

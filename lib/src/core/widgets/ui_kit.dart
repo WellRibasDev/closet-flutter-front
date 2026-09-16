@@ -59,46 +59,116 @@ class PastelBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // nuvens suaves
-          Positioned(
-            top: 40,
-            left: -20,
-            child: _Cloud(width: 120, opacity: 0.35),
-          ),
-          Positioned(
-            top: 110,
-            right: -30,
-            child: _Cloud(width: 150, opacity: 0.28),
-          ),
-          Positioned(
-            bottom: 160,
-            left: 40,
-            child: _Cloud(width: 100, opacity: 0.22),
-          ),
-          // estrelinhas discretas
-          Positioned(top: 70, right: 48, child: _Star(size: 10)),
-          Positioned(top: 160, left: 36, child: _Star(size: 8)),
-          Positioned(top: 240, right: 72, child: _Star(size: 7)),
-          Positioned(bottom: 280, left: 72, child: _Star(size: 9)),
-          Positioned(bottom: 200, right: 40, child: _Star(size: 8)),
+          // blobs de profundidade
           Positioned(
             top: -50,
             right: -30,
-            child: _Blob(
-              size: 160,
-              color: Colors.white.withValues(alpha: 0.22),
-            ),
+            child: _Blob(size: 160, color: Colors.white.withValues(alpha: 0.22)),
           ),
           Positioned(
             bottom: 60,
             left: -40,
             child: _Blob(
               size: 140,
-              color: AppColors.lilac.withValues(alpha: 0.18),
+              color: AppColors.lilac.withValues(alpha: 0.16),
             ),
           ),
+          Positioned(
+            top: 280,
+            right: -20,
+            child: _Blob(
+              size: 90,
+              color: AppColors.butter.withValues(alpha: 0.18),
+            ),
+          ),
+
+          // nuvens
+          const Positioned(top: 36, left: -16, child: _Cloud(width: 118, opacity: 0.32)),
+          const Positioned(top: 96, right: -28, child: _Cloud(width: 140, opacity: 0.26)),
+          const Positioned(top: 210, left: 28, child: _Cloud(width: 88, opacity: 0.18)),
+          const Positioned(bottom: 210, right: 18, child: _Cloud(width: 110, opacity: 0.2)),
+          const Positioned(bottom: 120, left: -10, child: _Cloud(width: 96, opacity: 0.16)),
+
+          // estrelas
+          const Positioned(top: 64, right: 56, child: _Star(size: 11)),
+          const Positioned(top: 130, left: 42, child: _Star(size: 8)),
+          const Positioned(top: 188, right: 90, child: _Star(size: 7)),
+          const Positioned(top: 320, left: 26, child: _Star(size: 9)),
+          const Positioned(bottom: 300, right: 48, child: _Star(size: 8)),
+          const Positioned(bottom: 240, left: 70, child: _Star(size: 7)),
+          const Positioned(bottom: 170, right: 110, child: _Star(size: 10)),
+
+          // detalhes fashion discretos
+          Positioned(
+            top: 150,
+            right: 28,
+            child: Icon(
+              Icons.checkroom_outlined,
+              size: 22,
+              color: Colors.white.withValues(alpha: 0.28),
+            ),
+          ),
+          Positioned(
+            top: 250,
+            left: 18,
+            child: Icon(
+              Icons.favorite_border_rounded,
+              size: 18,
+              color: Colors.white.withValues(alpha: 0.26),
+            ),
+          ),
+          Positioned(
+            bottom: 260,
+            right: 24,
+            child: Icon(
+              Icons.auto_awesome,
+              size: 18,
+              color: Colors.white.withValues(alpha: 0.24),
+            ),
+          ),
+          Positioned(
+            bottom: 190,
+            left: 36,
+            child: Icon(
+              Icons.diamond_outlined,
+              size: 16,
+              color: Colors.white.withValues(alpha: 0.22),
+            ),
+          ),
+          Positioned(
+            top: 360,
+            right: 40,
+            child: Icon(
+              Icons.spa_outlined,
+              size: 17,
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+          ),
+
+          // pontinhos
+          const Positioned(top: 100, left: 90, child: _Dot()),
+          const Positioned(top: 175, right: 50, child: _Dot()),
+          const Positioned(bottom: 220, left: 110, child: _Dot()),
+          const Positioned(bottom: 150, right: 70, child: _Dot()),
+
           child,
         ],
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.45),
+        shape: BoxShape.circle,
       ),
     );
   }
