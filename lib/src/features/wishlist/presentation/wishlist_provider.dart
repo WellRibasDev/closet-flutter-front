@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/providers.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../../wardrobe/data/models/clothing_item.dart';
 import '../../wardrobe/presentation/wardrobe_provider.dart';
 import '../data/models/wishlist_item.dart';
@@ -21,6 +22,12 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
 
   @override
   Future<List<WishlistItem>> build() async {
+    // Reconstrói ao trocar de conta (token muda no login/logout).
+    final token = ref.watch(authProvider.select((s) => s.value?.token));
+    if (token == null || token.isEmpty) {
+      return const [];
+    }
+
     final result = await _repo.list(comprado: false);
     return result.data;
   }

@@ -8,9 +8,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/ui_kit.dart' as kit;
+import '../../auth/presentation/auth_provider.dart';
 import '../../wardrobe/presentation/wardrobe_provider.dart';
 
 final styleGuideProvider = FutureProvider<Map<String, int>>((ref) async {
+  final token = ref.watch(authProvider.select((s) => s.value?.token));
+  if (token == null || token.isEmpty) {
+    return const {};
+  }
+
   final repo = ref.watch(wardrobeRepositoryProvider);
   final page1 = await repo.list(page: 1, limit: 100);
   final counts = <String, int>{};

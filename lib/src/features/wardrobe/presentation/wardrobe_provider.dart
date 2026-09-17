@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/providers.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../data/models/clothing_item.dart';
 import '../data/wardrobe_repository.dart';
 
@@ -67,7 +68,20 @@ class WardrobeNotifier extends AsyncNotifier<WardrobeListState> {
   WardrobeFilters _filters = const WardrobeFilters();
 
   @override
-  Future<WardrobeListState> build() => _fetch(page: 1, replace: true);
+  Future<WardrobeListState> build() async {
+    // Reconstrói ao trocar de conta (token muda no login/logout).
+    final token = ref.watch(authProvider.select((s) => s.value?.token));
+    _filters = const WardrobeFilters();
+    if (token == null || token.isEmpty) {
+      return const WardrobeListState(
+        items: [],
+        page: 1,
+        total: 0,
+        hasMore: false,
+      );
+    }
+    return _fetch(page: 1, replace: true);
+  }
 
   Future<WardrobeListState> _fetch({
     required int page,
@@ -162,5 +176,9 @@ class WardrobeNotifier extends AsyncNotifier<WardrobeListState> {
 
 final clothingDetailProvider =
     FutureProvider.family<ClothingItem, String>((ref, id) async {
+  final token = ref.watch(authProvider.select((s) => s.value?.token));
+  if (token == null || token.isEmpty) {
+    throw StateError('Sessão encerrada');
+  }
   return ref.watch(wardrobeRepositoryProvider).get(id);
 });

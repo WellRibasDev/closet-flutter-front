@@ -47,6 +47,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> logout() async {
     await _repo.logout();
+    // Limpa estado da sessão; providers de dados observam o token e reconstroem.
     state = const AsyncData(AuthState());
   }
 
