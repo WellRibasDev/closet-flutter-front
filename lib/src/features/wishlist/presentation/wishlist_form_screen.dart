@@ -169,12 +169,10 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
       'nome': _nomeCtrl.text.trim(),
       'categoria': _categoria,
       'prioridade': _prioridade,
-      'cor': _corCtrl.text.trim().isEmpty ? null : _corCtrl.text.trim(),
-      'tamanho':
-          _tamanhoCtrl.text.trim().isEmpty ? null : _tamanhoCtrl.text.trim(),
-      'marca': _marcaCtrl.text.trim().isEmpty ? null : _marcaCtrl.text.trim(),
-      'observacao':
-          _obsCtrl.text.trim().isEmpty ? null : _obsCtrl.text.trim(),
+      if (_corCtrl.text.trim().isNotEmpty) 'cor': _corCtrl.text.trim(),
+      if (_tamanhoCtrl.text.trim().isNotEmpty) 'tamanho': _tamanhoCtrl.text.trim(),
+      if (_marcaCtrl.text.trim().isNotEmpty) 'marca': _marcaCtrl.text.trim(),
+      if (_obsCtrl.text.trim().isNotEmpty) 'observacao': _obsCtrl.text.trim(),
       if (preco != null) 'precoAlvo': preco,
       if (link.isNotEmpty) 'linkRef': link,
     };
@@ -200,7 +198,13 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = e is ApiException ? e.message : 'Erro ao salvar desejo';
+        if (e is ApiException) {
+          _error = e.statusCode == 404
+              ? 'API desatualizada. Atualize o backend e tente de novo.'
+              : e.message;
+        } else {
+          _error = 'Erro ao salvar desejo';
+        }
       });
     } finally {
       AppLoading.hide();
@@ -209,20 +213,15 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
   }
 
   InputDecoration _fieldDecoration({
-    required String label,
     String? hint,
     IconData? icon,
   }) {
     return InputDecoration(
-      labelText: label,
       hintText: hint,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: icon == null ? null : Icon(icon, color: AppColors.inkSoft),
       filled: true,
       fillColor: Colors.white,
-      labelStyle: GoogleFonts.nunito(
-        color: AppColors.inkSoft,
-        fontWeight: FontWeight.w700,
-      ),
       hintStyle: GoogleFonts.nunito(color: AppColors.inkSoft),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
@@ -431,8 +430,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                     TextFormField(
                       controller: _nomeCtrl,
                       decoration: _fieldDecoration(
-                        label: 'Nome do desejo *',
-                        hint: 'Ex: Blazer preto oversized',
+                        hint: 'Nome do desejo *',
                         icon: Icons.favorite_border,
                       ),
                       validator: (v) {
@@ -481,7 +479,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                               TextFormField(
                                 controller: _corCtrl,
                                 decoration: _fieldDecoration(
-                                  label: 'Cor',
+                                  hint: 'Ex: Preto',
                                   icon: Icons.palette_outlined,
                                 ),
                               ),
@@ -498,7 +496,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                               TextFormField(
                                 controller: _tamanhoCtrl,
                                 decoration: _fieldDecoration(
-                                  label: 'Tam.',
+                                  hint: 'Ex: M',
                                   icon: Icons.straighten,
                                 ),
                               ),
@@ -513,7 +511,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                     TextFormField(
                       controller: _marcaCtrl,
                       decoration: _fieldDecoration(
-                        label: 'Marca',
                         hint: "Ex: Levi's",
                         icon: Icons.storefront_outlined,
                       ),
@@ -527,7 +524,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                         decimal: true,
                       ),
                       decoration: _fieldDecoration(
-                        label: 'Preço alvo',
                         hint: 'Ex: 199.90',
                         icon: Icons.attach_money,
                       ),
@@ -539,14 +535,11 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                       controller: _linkCtrl,
                       keyboardType: TextInputType.url,
                       decoration: _fieldDecoration(
-                        label: 'Link (opcional)',
                         hint: 'https://...',
                         icon: Icons.link,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _sectionLabel('PRIORIDADE'),
-                    const SizedBox(height: 8),
                     SoftSelectField<int>(
                       label: 'Prioridade',
                       value: _prioridade,
@@ -565,7 +558,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                       controller: _obsCtrl,
                       maxLines: 4,
                       decoration: _fieldDecoration(
-                        label: 'Observação',
                         hint: 'Onde viu, ocasião, combinações…',
                       ).copyWith(alignLabelWithHint: true),
                     ),
