@@ -196,15 +196,24 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
         );
         context.go('/desejos');
       }
+    } on ApiException catch (e) {
+      if (e.code == 'FOTO_UNAVAILABLE' && mounted) {
+        AppToast.show(
+          context,
+          message: e.message,
+          icon: Icons.warning_amber_rounded,
+        );
+        context.go('/desejos');
+        return;
+      }
+      setState(() {
+        _error = e.statusCode == 404
+            ? 'API desatualizada. Atualize o backend e tente de novo.'
+            : e.message;
+      });
     } catch (e) {
       setState(() {
-        if (e is ApiException) {
-          _error = e.statusCode == 404
-              ? 'API desatualizada. Atualize o backend e tente de novo.'
-              : e.message;
-        } else {
-          _error = 'Erro ao salvar desejo';
-        }
+        _error = 'Erro ao salvar desejo';
       });
     } finally {
       AppLoading.hide();

@@ -50,18 +50,6 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
     });
   }
 
-  Future<WishlistItem> create({
-    required Map<String, dynamic> body,
-    File? foto,
-  }) async {
-    var item = await _repo.create(body);
-    if (foto != null) {
-      item = await _repo.uploadFoto(item.id, foto);
-    }
-    await refresh();
-    return item;
-  }
-
   Future<WishlistItem> updateItem({
     required String id,
     required Map<String, dynamic> body,
@@ -69,10 +57,46 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
   }) async {
     var item = await _repo.update(id, body);
     if (foto != null) {
-      item = await _repo.uploadFoto(id, foto);
+      try {
+        item = await _repo.uploadFoto(id, foto);
+      } on ApiException catch (e) {
+        // Dados já salvos; foto pode falhar se a rota ainda não estiver no ar.
+        if (e.statusCode != 404) rethrow;
+        await refresh();
+        ref.invalidate(wishlistDetailProvider(id));
+        throw ApiException(
+          code: 'FOTO_UNAVAILABLE',
+          message:
+              'Desejo salvo, mas o upload de foto ainda não está disponível na API. Redeploy o backend.',
+          statusCode: e.statusCode,
+        );
+      }
     }
     await refresh();
     ref.invalidate(wishlistDetailProvider(id));
+    return item;
+  }
+
+  Future<WishlistItem> create({
+    required Map<String, dynamic> body,
+    File? foto,
+  }) async {
+    var item = await _repo.create(body);
+    if (foto != null) {
+      try {
+        item = await _repo.uploadFoto(item.id, foto);
+      } on ApiException catch (e) {
+        if (e.statusCode != 404) rethrow;
+        await refresh();
+        throw ApiException(
+          code: 'FOTO_UNAVAILABLE',
+          message:
+              'Desejo criado, mas o upload de foto ainda não está disponível na API. Redeploy o backend.',
+          statusCode: e.statusCode,
+        );
+      }
+    }
+    await refresh();
     return item;
   }
 
