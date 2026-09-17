@@ -12,6 +12,8 @@ import '../features/profile/presentation/style_guide_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_detail_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_form_screen.dart';
 import '../features/wardrobe/presentation/wardrobe_list_screen.dart';
+import '../features/wishlist/presentation/wishlist_detail_screen.dart';
+import '../features/wishlist/presentation/wishlist_form_screen.dart';
 import '../features/wishlist/presentation/wishlist_screen.dart';
 import 'network/providers.dart';
 import 'widgets/main_shell.dart';
@@ -114,6 +116,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return WardrobeFormScreen(itemId: id);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/desejos/nova',
+        builder: (context, state) => const WishlistFormScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/desejos/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return WishlistDetailScreen(id: id);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/desejos/:id/editar',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return WishlistFormScreen(itemId: id);
         },
       ),
     ],

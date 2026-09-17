@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
@@ -17,12 +19,20 @@ final wishlistProvider =
   WishlistNotifier.new,
 );
 
+final wishlistDetailProvider =
+    FutureProvider.family<WishlistItem, String>((ref, id) async {
+  final token = ref.watch(authProvider.select((s) => s.value?.token));
+  if (token == null || token.isEmpty) {
+    throw StateError('Sessão encerrada');
+  }
+  return ref.watch(wishlistRepositoryProvider).get(id);
+});
+
 class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
   WishlistRepository get _repo => ref.read(wishlistRepositoryProvider);
 
   @override
   Future<List<WishlistItem>> build() async {
-    // Reconstrói ao trocar de conta (token muda no login/logout).
     final token = ref.watch(authProvider.select((s) => s.value?.token));
     if (token == null || token.isEmpty) {
       return const [];
@@ -40,9 +50,30 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
     });
   }
 
-  Future<void> create(Map<String, dynamic> body) async {
-    await _repo.create(body);
+  Future<WishlistItem> create({
+    required Map<String, dynamic> body,
+    File? foto,
+  }) async {
+    var item = await _repo.create(body);
+    if (foto != null) {
+      item = await _repo.uploadFoto(item.id, foto);
+    }
     await refresh();
+    return item;
+  }
+
+  Future<WishlistItem> updateItem({
+    required String id,
+    required Map<String, dynamic> body,
+    File? foto,
+  }) async {
+    var item = await _repo.update(id, body);
+    if (foto != null) {
+      item = await _repo.uploadFoto(id, foto);
+    }
+    await refresh();
+    ref.invalidate(wishlistDetailProvider(id));
+    return item;
   }
 
   Future<void> delete(String id) async {
@@ -51,6 +82,7 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
     if (current != null) {
       state = AsyncData(current.where((e) => e.id != id).toList());
     }
+    ref.invalidate(wishlistDetailProvider(id));
   }
 
   Future<ClothingItem> moverParaCloset(String id, {String? categoria}) async {
@@ -62,6 +94,7 @@ class WishlistNotifier extends AsyncNotifier<List<WishlistItem>> {
       final roupa = await _repo.moverParaCloset(id);
       await refresh();
       ref.invalidate(wardrobeProvider);
+      ref.invalidate(wishlistDetailProvider(id));
       return roupa;
     } on ApiException catch (e) {
       if (e.code == 'DESEJO_SEM_CATEGORIA') {

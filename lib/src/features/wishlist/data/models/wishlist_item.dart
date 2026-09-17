@@ -3,6 +3,9 @@ class WishlistItem {
     required this.id,
     required this.nome,
     this.categoria,
+    this.cor,
+    this.tamanho,
+    this.marca,
     this.precoAlvo,
     this.linkRef,
     this.prioridade = 0,
@@ -17,6 +20,9 @@ class WishlistItem {
   final String id;
   final String nome;
   final String? categoria;
+  final String? cor;
+  final String? tamanho;
+  final String? marca;
   final double? precoAlvo;
   final String? linkRef;
   final int prioridade;
@@ -32,6 +38,9 @@ class WishlistItem {
       id: json['id'] as String,
       nome: json['nome'] as String,
       categoria: json['categoria'] as String?,
+      cor: json['cor'] as String?,
+      tamanho: json['tamanho'] as String?,
+      marca: json['marca'] as String?,
       precoAlvo: json['precoAlvo'] == null
           ? null
           : (json['precoAlvo'] as num).toDouble(),
@@ -48,18 +57,6 @@ class WishlistItem {
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
     );
-  }
-
-  Map<String, dynamic> toCreateJson() {
-    return {
-      'nome': nome,
-      'categoria': categoria,
-      if (precoAlvo != null) 'precoAlvo': precoAlvo,
-      if (linkRef != null && linkRef!.isNotEmpty) 'linkRef': linkRef,
-      'prioridade': prioridade,
-      if (observacao != null) 'observacao': observacao,
-      if (fotoUrl != null) 'fotoUrl': fotoUrl,
-    };
   }
 }
 

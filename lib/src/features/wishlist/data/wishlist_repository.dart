@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
@@ -30,6 +32,15 @@ class WishlistRepository {
     }
   }
 
+  Future<WishlistItem> get(String id) async {
+    try {
+      final response = await _api.dio.get<Map<String, dynamic>>('/desejos/$id');
+      return WishlistItem.fromJson(response.data!);
+    } on DioException catch (e) {
+      _api.throwFromDio(e);
+    }
+  }
+
   Future<WishlistItem> create(Map<String, dynamic> body) async {
     try {
       final response = await _api.dio.post<Map<String, dynamic>>(
@@ -49,6 +60,29 @@ class WishlistRepository {
         data: body,
       );
       return WishlistItem.fromJson(response.data!);
+    } on DioException catch (e) {
+      _api.throwFromDio(e);
+    }
+  }
+
+  Future<WishlistItem> uploadFoto(String id, File file) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: file.uri.pathSegments.last,
+        ),
+      });
+      final response = await _api.dio.post<Map<String, dynamic>>(
+        '/desejos/$id/foto',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      final data = response.data!;
+      if (data['desejo'] is Map<String, dynamic>) {
+        return WishlistItem.fromJson(data['desejo'] as Map<String, dynamic>);
+      }
+      return WishlistItem.fromJson(data);
     } on DioException catch (e) {
       _api.throwFromDio(e);
     }
