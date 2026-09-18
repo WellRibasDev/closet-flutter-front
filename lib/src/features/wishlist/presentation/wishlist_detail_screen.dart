@@ -187,27 +187,6 @@ class WishlistDetailScreen extends ConsumerWidget {
                                     color: AppColors.chip,
                                     child: const Icon(Icons.favorite_border, size: 72),
                                   ),
-                            if (item.marca != null && item.marca!.isNotEmpty)
-                              Positioned(
-                                left: 16,
-                                bottom: 24,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    item.marca!,
-                                    style: GoogleFonts.nunito(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                       ),
@@ -260,11 +239,11 @@ class WishlistDetailScreen extends ConsumerWidget {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                if (item.tamanho != null &&
-                                    item.tamanho!.isNotEmpty)
-                                  _InfoChip(Icons.straighten, item.tamanho!),
-                                if (item.cor != null && item.cor!.isNotEmpty)
-                                  _InfoChip(Icons.palette_outlined, item.cor!),
+                                if (item.marca != null && item.marca!.isNotEmpty)
+                                  _InfoChip(
+                                    Icons.storefront_outlined,
+                                    item.marca!,
+                                  ),
                                 _InfoChip(
                                   Icons.star_outline,
                                   _prioLabel(item.prioridade),

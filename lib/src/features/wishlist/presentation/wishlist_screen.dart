@@ -185,12 +185,6 @@ class WishlistScreen extends ConsumerWidget {
                                           '★ ${_prioLabel(item.prioridade)}',
                                           _prioColor(item.prioridade),
                                         ),
-                                        if (item.tamanho != null &&
-                                            item.tamanho!.isNotEmpty)
-                                          _MiniTag(
-                                            'Tam. ${item.tamanho!}',
-                                            AppColors.chip,
-                                          ),
                                       ],
                                     ),
                                     Text(
@@ -204,9 +198,9 @@ class WishlistScreen extends ConsumerWidget {
                                     Builder(
                                       builder: (context) {
                                         final bits = <String>[
-                                          if (item.cor != null &&
-                                              item.cor!.isNotEmpty)
-                                            item.cor!,
+                                          if (item.marca != null &&
+                                              item.marca!.isNotEmpty)
+                                            item.marca!,
                                           if (item.precoAlvo != null)
                                             'R\$ ${item.precoAlvo!.toStringAsFixed(2)}',
                                         ];
