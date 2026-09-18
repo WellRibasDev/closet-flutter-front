@@ -50,3 +50,8 @@ app.*.map.json
 # Env local
 .env
 
+# Local agent/build caches (never commit)
+.gradle-home/
+.agent-home/
+.dart-tool-home/
+

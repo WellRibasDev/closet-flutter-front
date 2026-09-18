@@ -30,9 +30,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   String? _existingFotoUrl;
   File? _foto;
   var _loading = false;
-  var _hydrated = false;
+  var _loadingUser = true;
   String? _error;
   var _changePassword = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadUser());
+  }
 
   @override
   void dispose() {
@@ -44,19 +50,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
-  void _hydrateFromAuth() {
-    if (_hydrated) return;
+  Future<void> _loadUser() async {
+    setState(() => _loadingUser = true);
+    try {
+      await ref.read(authProvider.notifier).refreshMe();
+    } catch (_) {
+      // usa o que já estiver em memória
+    }
+    if (!mounted) return;
     final user = ref.read(authProvider).value?.user;
-    if (user == null) return;
-    _hydrated = true;
-    _nomeCtrl.text = user.nome ?? '';
-    _emailCtrl.text = user.email;
-    _existingFotoUrl = user.fotoUrl;
+    if (user != null) {
+      _nomeCtrl.text = user.nome ?? '';
+      _emailCtrl.text = user.email;
+      _existingFotoUrl = user.fotoUrl;
+    }
+    setState(() => _loadingUser = false);
   }
 
   Future<void> _pick(ImageSource source) async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
+    final file = await ImagePicker().pickImage(
       source: source,
       imageQuality: 85,
       maxWidth: 1200,
@@ -126,6 +138,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final nome = _nomeCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
     String? senhaAtual;
     String? novaSenha;
 
@@ -147,6 +160,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     try {
       await ref.read(authProvider.notifier).updateProfile(
             nome: nome,
+            email: email,
             senhaAtual: senhaAtual,
             novaSenha: novaSenha,
             foto: _foto,
@@ -173,46 +187,47 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      prefixIcon: icon == null ? null : Icon(icon, color: AppColors.inkSoft),
+      prefixIcon: icon == null ? null : Icon(icon, color: AppColors.roseDeep),
       filled: true,
-      fillColor: AppColors.blush.withValues(alpha: 0.45),
+      fillColor: Colors.white,
       labelStyle: GoogleFonts.nunito(color: AppColors.inkSoft),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(color: AppColors.petal),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(color: AppColors.petal),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: AppColors.pinkChip, width: 1.4),
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.pinkChip, width: 1.6),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.danger),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(authProvider);
-    _hydrateFromAuth();
-
     final hasFoto =
         _foto != null || (_existingFotoUrl != null && _existingFotoUrl!.isNotEmpty);
 
     return Scaffold(
-      backgroundColor: AppColors.blush,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 16, 0),
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
               child: Row(
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.white,
+                      backgroundColor: AppColors.blush,
                       foregroundColor: AppColors.ink,
                     ),
                     icon: const Icon(Icons.arrow_back_ios_new, size: 18),
@@ -224,201 +239,241 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       style: GoogleFonts.nunito(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-                  children: [
-                    Center(
-                      child: GestureDetector(
-                        onTap: _showPickerSheet,
-                        child: Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 56,
-                              backgroundColor: Colors.white,
-                              backgroundImage: _foto != null
-                                  ? FileImage(_foto!)
-                                  : (_existingFotoUrl != null &&
-                                          _existingFotoUrl!.isNotEmpty
-                                      ? CachedNetworkImageProvider(
-                                          _existingFotoUrl!,
-                                        )
-                                      : null),
-                              child: hasFoto
-                                  ? null
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 52,
-                                      color: AppColors.roseDeep,
-                                    ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.pinkChip,
+            if (_loadingUser)
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.pinkChip),
+                ),
+              )
+            else
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                    children: [
+                      Center(
+                        child: GestureDetector(
+                          onTap: _showPickerSheet,
+                          child: Stack(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.pinkChip,
+                                    width: 2.5,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  size: 18,
-                                  color: Colors.white,
+                                child: CircleAvatar(
+                                  radius: 54,
+                                  backgroundColor: AppColors.blush,
+                                  backgroundImage: _foto != null
+                                      ? FileImage(_foto!)
+                                      : (_existingFotoUrl != null &&
+                                              _existingFotoUrl!.isNotEmpty
+                                          ? CachedNetworkImageProvider(
+                                              _existingFotoUrl!,
+                                            )
+                                          : null),
+                                  child: hasFoto
+                                      ? null
+                                      : const Icon(
+                                          Icons.person,
+                                          size: 52,
+                                          color: AppColors.roseDeep,
+                                        ),
                                 ),
                               ),
-                            ),
-                          ],
+                              Positioned(
+                                right: 4,
+                                bottom: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.pinkChip,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.roseDeep
+                                            .withValues(alpha: 0.25),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Center(
-                      child: Text(
-                        'Toque para tirar ou escolher foto',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.inkSoft,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(height: 10),
+                      Center(
+                        child: Text(
+                          'Toque para tirar ou escolher foto',
+                          style: GoogleFonts.nunito(
+                            color: AppColors.inkSoft,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _nomeCtrl,
-                      decoration: _input('Nome', icon: Icons.badge_outlined),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Informe seu nome';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _emailCtrl,
-                      enabled: false,
-                      decoration: _input(
-                        'E-mail',
-                        icon: Icons.email_outlined,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'O e-mail não pode ser alterado por aqui.',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        color: AppColors.inkSoft,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        'Alterar senha',
-                        style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
-                      ),
-                      value: _changePassword,
-                      activeColor: AppColors.pinkChip,
-                      onChanged: (v) => setState(() => _changePassword = v),
-                    ),
-                    if (_changePassword) ...[
+                      const SizedBox(height: 24),
                       TextFormField(
-                        controller: _senhaAtualCtrl,
-                        obscureText: true,
-                        decoration: _input(
-                          'Senha atual',
-                          icon: Icons.lock_outline,
-                        ),
+                        controller: _nomeCtrl,
+                        decoration: _input('Nome', icon: Icons.badge_outlined),
                         validator: (v) {
-                          if (!_changePassword) return null;
-                          if (v == null || v.isEmpty) {
-                            return 'Informe a senha atual';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Informe seu nome';
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       TextFormField(
-                        controller: _novaSenhaCtrl,
-                        obscureText: true,
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: _input(
-                          'Nova senha',
-                          icon: Icons.lock_reset,
+                          'E-mail',
+                          icon: Icons.email_outlined,
                         ),
                         validator: (v) {
-                          if (!_changePassword) return null;
-                          if (v == null || v.length < 6) {
-                            return 'Mínimo de 6 caracteres';
+                          final value = v?.trim() ?? '';
+                          if (value.isEmpty || !value.contains('@')) {
+                            return 'Informe um e-mail válido';
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _confirmaSenhaCtrl,
-                        obscureText: true,
-                        decoration: _input(
-                          'Confirmar nova senha',
-                          icon: Icons.lock_outline,
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
                         ),
-                        validator: (v) {
-                          if (!_changePassword) return null;
-                          if (v != _novaSenhaCtrl.text) {
-                            return 'As senhas não conferem';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: GoogleFonts.nunito(
-                          color: AppColors.danger,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 22),
-                    FilledButton(
-                      onPressed: _loading ? null : _submit,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.pinkChip,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
+                        decoration: BoxDecoration(
+                          color: AppColors.blush.withValues(alpha: 0.55),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                      ),
-                      child: _loading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'Salvar perfil',
-                              style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                              ),
+                        child: SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'Alterar senha',
+                            style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w800,
                             ),
-                    ),
-                  ],
+                          ),
+                          value: _changePassword,
+                          activeThumbColor: AppColors.pinkChip,
+                          onChanged: (v) =>
+                              setState(() => _changePassword = v),
+                        ),
+                      ),
+                      if (_changePassword) ...[
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _senhaAtualCtrl,
+                          obscureText: true,
+                          decoration: _input(
+                            'Senha atual',
+                            icon: Icons.lock_outline,
+                          ),
+                          validator: (v) {
+                            if (!_changePassword) return null;
+                            if (v == null || v.isEmpty) {
+                              return 'Informe a senha atual';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _novaSenhaCtrl,
+                          obscureText: true,
+                          decoration: _input(
+                            'Nova senha',
+                            icon: Icons.lock_reset,
+                          ),
+                          validator: (v) {
+                            if (!_changePassword) return null;
+                            if (v == null || v.length < 6) {
+                              return 'Mínimo de 6 caracteres';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _confirmaSenhaCtrl,
+                          obscureText: true,
+                          decoration: _input(
+                            'Confirmar nova senha',
+                            icon: Icons.lock_outline,
+                          ),
+                          validator: (v) {
+                            if (!_changePassword) return null;
+                            if (v != _novaSenhaCtrl.text) {
+                              return 'As senhas não conferem';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _error!,
+                          style: GoogleFonts.nunito(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: _loading ? null : _submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.pinkChip,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Salvar perfil',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
