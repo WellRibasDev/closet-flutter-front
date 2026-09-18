@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
@@ -51,6 +53,64 @@ class AuthRepository {
   }
 
   Future<String?> readToken() => _tokenStorage.read();
+
+  Future<User> fetchMe() async {
+    try {
+      final response = await _api.dio.get<Map<String, dynamic>>('/me');
+      final data = response.data!;
+      final userJson = data['user'] as Map<String, dynamic>? ?? data;
+      return User.fromJson(userJson);
+    } on DioException catch (e) {
+      _api.throwFromDio(e);
+    }
+  }
+
+  Future<User> updateMe({
+    String? nome,
+    String? senhaAtual,
+    String? novaSenha,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        if (nome != null) 'nome': nome,
+        if (senhaAtual != null && senhaAtual.isNotEmpty) 'senhaAtual': senhaAtual,
+        if (novaSenha != null && novaSenha.isNotEmpty) 'novaSenha': novaSenha,
+      };
+      final response = await _api.dio.put<Map<String, dynamic>>(
+        '/me',
+        data: body,
+      );
+      final data = response.data!;
+      final userJson = data['user'] as Map<String, dynamic>? ?? data;
+      return User.fromJson(userJson);
+    } on DioException catch (e) {
+      _api.throwFromDio(e);
+    }
+  }
+
+  Future<User> uploadFotoPerfil(File file) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: file.uri.pathSegments.last,
+        ),
+      });
+      final response = await _api.dio.post<Map<String, dynamic>>(
+        '/me/foto',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+      final data = response.data!;
+      final userJson = data['user'] as Map<String, dynamic>?;
+      if (userJson != null) {
+        return User.fromJson(userJson);
+      }
+      return fetchMe();
+    } on DioException catch (e) {
+      _api.throwFromDio(e);
+    }
+  }
 
   Future<bool> checkHealth() async {
     try {

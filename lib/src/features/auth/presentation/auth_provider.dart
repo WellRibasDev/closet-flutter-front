@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/providers.dart';
@@ -24,7 +26,13 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (token == null || token.isEmpty) {
       return const AuthState();
     }
-    return AuthState(token: token);
+    try {
+      final user = await _repo.fetchMe();
+      return AuthState(user: user, token: token);
+    } catch (_) {
+      // Token presente mas /me falhou (API antiga / offline): mantém sessão.
+      return AuthState(token: token);
+    }
   }
 
   Future<void> login({required String email, required String senha}) async {
@@ -43,6 +51,37 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = await AsyncValue.guard(
       () => _repo.register(nome: nome, email: email, senha: senha),
     );
+  }
+
+  Future<void> refreshMe() async {
+    final current = state.value;
+    if (current?.token == null) return;
+    final user = await _repo.fetchMe();
+    state = AsyncData(AuthState(user: user, token: current!.token));
+  }
+
+  Future<void> updateProfile({
+    required String nome,
+    String? senhaAtual,
+    String? novaSenha,
+    File? foto,
+  }) async {
+    final current = state.value;
+    if (current?.token == null) {
+      throw StateError('Sessão inválida');
+    }
+
+    var user = await _repo.updateMe(
+      nome: nome,
+      senhaAtual: senhaAtual,
+      novaSenha: novaSenha,
+    );
+
+    if (foto != null) {
+      user = await _repo.uploadFotoPerfil(foto);
+    }
+
+    state = AsyncData(AuthState(user: user, token: current!.token));
   }
 
   Future<void> logout() async {

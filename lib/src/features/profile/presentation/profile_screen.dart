@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +23,7 @@ class ProfileScreen extends ConsumerWidget {
         ? auth!.user!.nome!
         : 'Elisa';
     final email = auth?.user?.email ?? '—';
+    final fotoUrl = auth?.user?.fotoUrl;
     final desde = auth?.user?.createdAt;
     final pecas = wardrobe?.total ?? 0;
     final desejos = wishlist?.length ?? 0;
@@ -58,11 +60,16 @@ class ProfileScreen extends ConsumerWidget {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor: Colors.white.withValues(alpha: 0.85),
-                        child: const Icon(
-                          Icons.person,
-                          color: AppColors.roseDeep,
-                          size: 32,
-                        ),
+                        backgroundImage: fotoUrl != null && fotoUrl.isNotEmpty
+                            ? CachedNetworkImageProvider(fotoUrl)
+                            : null,
+                        child: fotoUrl != null && fotoUrl.isNotEmpty
+                            ? null
+                            : const Icon(
+                                Icons.person,
+                                color: AppColors.roseDeep,
+                                size: 32,
+                              ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -108,8 +115,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       TextButton(
-                        onPressed: () =>
-                            AppToast.comingSoon(context, 'Edição de perfil'),
+                        onPressed: () => context.push('/perfil/editar'),
                         style: TextButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: AppColors.ink,
