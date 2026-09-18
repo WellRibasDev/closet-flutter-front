@@ -67,12 +67,14 @@ class AuthRepository {
 
   Future<User> updateMe({
     String? nome,
+    String? email,
     String? senhaAtual,
     String? novaSenha,
   }) async {
     try {
       final body = <String, dynamic>{
         if (nome != null) 'nome': nome,
+        if (email != null && email.isNotEmpty) 'email': email,
         if (senhaAtual != null && senhaAtual.isNotEmpty) 'senhaAtual': senhaAtual,
         if (novaSenha != null && novaSenha.isNotEmpty) 'novaSenha': novaSenha,
       };

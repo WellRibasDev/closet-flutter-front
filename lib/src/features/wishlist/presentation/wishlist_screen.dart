@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
+import 'wishlist_form_sheet.dart';
 import 'wishlist_provider.dart';
 
 class WishlistScreen extends ConsumerWidget {
@@ -185,12 +186,6 @@ class WishlistScreen extends ConsumerWidget {
                                           '★ ${_prioLabel(item.prioridade)}',
                                           _prioColor(item.prioridade),
                                         ),
-                                        if (item.tamanho != null &&
-                                            item.tamanho!.isNotEmpty)
-                                          _MiniTag(
-                                            'Tam. ${item.tamanho!}',
-                                            AppColors.chip,
-                                          ),
                                       ],
                                     ),
                                     Text(
@@ -204,9 +199,9 @@ class WishlistScreen extends ConsumerWidget {
                                     Builder(
                                       builder: (context) {
                                         final bits = <String>[
-                                          if (item.cor != null &&
-                                              item.cor!.isNotEmpty)
-                                            item.cor!,
+                                          if (item.marca != null &&
+                                              item.marca!.isNotEmpty)
+                                            item.marca!,
                                           if (item.precoAlvo != null)
                                             'R\$ ${item.precoAlvo!.toStringAsFixed(2)}',
                                         ];
@@ -246,7 +241,7 @@ class WishlistScreen extends ConsumerWidget {
                 }),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () => context.push('/desejos/nova'),
+                  onPressed: () => showWishlistFormSheet(context, ref),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.roseDeep,
                     side: BorderSide(

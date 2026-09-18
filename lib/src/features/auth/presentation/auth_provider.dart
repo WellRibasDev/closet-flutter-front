@@ -62,6 +62,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> updateProfile({
     required String nome,
+    String? email,
     String? senhaAtual,
     String? novaSenha,
     File? foto,
@@ -73,6 +74,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
     var user = await _repo.updateMe(
       nome: nome,
+      email: email,
       senhaAtual: senhaAtual,
       novaSenha: novaSenha,
     );
