@@ -28,14 +28,12 @@ class WishlistFormScreen extends ConsumerStatefulWidget {
 class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeCtrl = TextEditingController();
-  final _corCtrl = TextEditingController();
-  final _tamanhoCtrl = TextEditingController();
   final _marcaCtrl = TextEditingController();
   final _precoCtrl = TextEditingController();
   final _linkCtrl = TextEditingController();
   final _obsCtrl = TextEditingController();
 
-  String? _categoria;
+  String _categoria = clothingCategories.first;
   int _prioridade = 1;
   String? _existingFotoUrl;
   File? _foto;
@@ -46,8 +44,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
   @override
   void dispose() {
     _nomeCtrl.dispose();
-    _corCtrl.dispose();
-    _tamanhoCtrl.dispose();
     _marcaCtrl.dispose();
     _precoCtrl.dispose();
     _linkCtrl.dispose();
@@ -59,9 +55,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
     if (_hydrated) return;
     _hydrated = true;
     _nomeCtrl.text = item.nome;
-    _categoria = item.categoria;
-    _corCtrl.text = item.cor ?? '';
-    _tamanhoCtrl.text = item.tamanho ?? '';
+    _categoria = item.categoria ?? clothingCategories.first;
     _marcaCtrl.text = item.marca ?? '';
     _precoCtrl.text = item.precoAlvo?.toStringAsFixed(2) ?? '';
     _linkCtrl.text = item.linkRef ?? '';
@@ -86,7 +80,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
       builder: (context) => SafeArea(
         child: Padding(
@@ -98,16 +92,13 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                 width: 42,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.chip,
+                  color: AppColors.petal,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
               const SizedBox(height: 12),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.chip,
-                  child: Icon(Icons.photo_library_outlined, color: AppColors.roseDeep),
-                ),
+                leading: const Icon(Icons.photo_library_outlined, color: AppColors.roseDeep),
                 title: Text(
                   'Galeria',
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
@@ -118,10 +109,7 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                 },
               ),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.chip,
-                  child: Icon(Icons.photo_camera_outlined, color: AppColors.roseDeep),
-                ),
+                leading: const Icon(Icons.photo_camera_outlined, color: AppColors.roseDeep),
                 title: Text(
                   'Câmera',
                   style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
@@ -140,10 +128,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_categoria == null || _categoria!.isEmpty) {
-      setState(() => _error = 'Selecione uma categoria');
-      return;
-    }
 
     final link = _linkCtrl.text.trim();
     if (link.isNotEmpty) {
@@ -169,8 +153,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
       'nome': _nomeCtrl.text.trim(),
       'categoria': _categoria,
       'prioridade': _prioridade,
-      if (_corCtrl.text.trim().isNotEmpty) 'cor': _corCtrl.text.trim(),
-      if (_tamanhoCtrl.text.trim().isNotEmpty) 'tamanho': _tamanhoCtrl.text.trim(),
       if (_marcaCtrl.text.trim().isNotEmpty) 'marca': _marcaCtrl.text.trim(),
       if (_obsCtrl.text.trim().isNotEmpty) 'observacao': _obsCtrl.text.trim(),
       if (preco != null) 'precoAlvo': preco,
@@ -206,47 +188,38 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
         context.go('/desejos');
         return;
       }
-      setState(() {
-        _error = e.statusCode == 404
-            ? 'API desatualizada. Atualize o backend e tente de novo.'
-            : e.message;
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Erro ao salvar desejo';
-      });
+      setState(() => _error = e.message);
+    } catch (_) {
+      setState(() => _error = 'Erro ao salvar desejo');
     } finally {
       AppLoading.hide();
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  InputDecoration _fieldDecoration({
-    String? hint,
-    IconData? icon,
-  }) {
+  InputDecoration _input(String label, {String? hint, IconData? icon}) {
     return InputDecoration(
+      labelText: label,
       hintText: hint,
-      floatingLabelBehavior: FloatingLabelBehavior.never,
       prefixIcon: icon == null ? null : Icon(icon, color: AppColors.inkSoft),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.blush.withValues(alpha: 0.45),
+      labelStyle: GoogleFonts.nunito(color: AppColors.inkSoft),
       hintStyle: GoogleFonts.nunito(color: AppColors.inkSoft),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: AppColors.chip),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.petal),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: BorderSide(color: AppColors.chip),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: AppColors.petal),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
-        borderSide: const BorderSide(color: AppColors.pinkChip, width: 1.5),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.pinkChip, width: 1.4),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.danger),
       ),
     );
@@ -283,19 +256,10 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
     return _buildForm(context);
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.nunito(
-        fontSize: 11,
-        letterSpacing: 1,
-        fontWeight: FontWeight.w800,
-        color: AppColors.inkSoft,
-      ),
-    );
-  }
-
   Widget _buildForm(BuildContext context) {
+    final hasFoto =
+        _foto != null || (_existingFotoUrl != null && _existingFotoUrl!.isNotEmpty);
+
     return Scaffold(
       backgroundColor: AppColors.blush,
       body: SafeArea(
@@ -333,115 +297,9 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                   children: [
-                    GestureDetector(
-                      onTap: _showPickerSheet,
-                      child: AspectRatio(
-                        aspectRatio: 1.2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                if (_foto != null)
-                                  Image.file(_foto!, fit: BoxFit.cover)
-                                else if (_existingFotoUrl != null &&
-                                    _existingFotoUrl!.isNotEmpty)
-                                  CachedNetworkImage(
-                                    imageUrl: _existingFotoUrl!,
-                                    fit: BoxFit.cover,
-                                  )
-                                else
-                                  Container(
-                                    color: AppColors.chip,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.add_a_photo_outlined,
-                                          size: 42,
-                                          color: AppColors.roseDeep,
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          'Adicionar foto',
-                                          style: GoogleFonts.nunito(
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.inkSoft,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Galeria ou câmera',
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 12,
-                                            color: AppColors.inkSoft,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                Positioned(
-                                  right: 12,
-                                  bottom: 12,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.95),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.camera_alt_outlined,
-                                          size: 16,
-                                          color: AppColors.roseDeep,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          _foto != null ||
-                                                  (_existingFotoUrl?.isNotEmpty ??
-                                                      false)
-                                              ? 'Trocar'
-                                              : 'Foto',
-                                          style: GoogleFonts.nunito(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _sectionLabel('NOME'),
-                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _nomeCtrl,
-                      decoration: _fieldDecoration(
-                        hint: 'Nome do desejo *',
-                        icon: Icons.favorite_border,
-                      ),
+                      decoration: _input('Nome *', icon: Icons.favorite_border),
                       validator: (v) {
                         if (v == null || v.trim().length < 2) {
                           return 'Nome com no mínimo 2 caracteres';
@@ -449,106 +307,46 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    _sectionLabel('CATEGORIA'),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: clothingCategories.map((c) {
-                        final selected = _categoria == c;
-                        return ChoiceChip(
-                          label: Text(c),
-                          selected: selected,
-                          onSelected: (_) => setState(() => _categoria = c),
-                          selectedColor: AppColors.pinkChip,
-                          backgroundColor: Colors.white,
-                          labelStyle: GoogleFonts.nunito(
-                            color: selected ? Colors.white : AppColors.ink,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          side: BorderSide(
-                            color: selected ? AppColors.pinkChip : AppColors.chip,
-                          ),
-                        );
-                      }).toList(),
+                    const SizedBox(height: 12),
+                    SoftSelectField<String>(
+                      label: 'Categoria',
+                      value: _categoria,
+                      items: clothingCategories,
+                      labelBuilder: (v) => v,
+                      onChanged: (v) => setState(() => _categoria = v),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _sectionLabel('COR'),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _corCtrl,
-                                decoration: _fieldDecoration(
-                                  hint: 'Ex: Preto',
-                                  icon: Icons.palette_outlined,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _sectionLabel('TAMANHO'),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _tamanhoCtrl,
-                                decoration: _fieldDecoration(
-                                  hint: 'Ex: M',
-                                  icon: Icons.straighten,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    _sectionLabel('MARCA'),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _marcaCtrl,
-                      decoration: _fieldDecoration(
+                      decoration: _input(
+                        'Marca',
                         hint: "Ex: Levi's",
                         icon: Icons.storefront_outlined,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _sectionLabel('PREÇO ALVO'),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _precoCtrl,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: _fieldDecoration(
+                      decoration: _input(
+                        'Preço alvo',
                         hint: 'Ex: 199.90',
                         icon: Icons.attach_money,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _sectionLabel('LINK DA LOJA'),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _linkCtrl,
                       keyboardType: TextInputType.url,
-                      decoration: _fieldDecoration(
+                      decoration: _input(
+                        'Link da loja (opcional)',
                         hint: 'https://...',
                         icon: Icons.link,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     SoftSelectField<int>(
                       label: 'Prioridade',
                       value: _prioridade,
@@ -560,15 +358,108 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                       },
                       onChanged: (v) => setState(() => _prioridade = v),
                     ),
-                    const SizedBox(height: 16),
-                    _sectionLabel('OBSERVAÇÃO'),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 12),
                     TextFormField(
                       controller: _obsCtrl,
-                      maxLines: 4,
-                      decoration: _fieldDecoration(
-                        hint: 'Onde viu, ocasião, combinações…',
+                      maxLines: 3,
+                      decoration: _input(
+                        'Observação',
+                        hint: 'Onde viu, ocasião…',
                       ).copyWith(alignLabelWithHint: true),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Foto (opcional)',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.inkSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _showPickerSheet,
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.petal),
+                        ),
+                        child: hasFoto
+                            ? Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.horizontal(
+                                      left: Radius.circular(15),
+                                    ),
+                                    child: SizedBox(
+                                      width: 120,
+                                      height: 120,
+                                      child: _foto != null
+                                          ? Image.file(_foto!, fit: BoxFit.cover)
+                                          : CachedNetworkImage(
+                                              imageUrl: _existingFotoUrl!,
+                                              fit: BoxFit.cover,
+                                            ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Foto selecionada',
+                                            style: GoogleFonts.nunito(
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Toque para trocar',
+                                            style: GoogleFonts.nunito(
+                                              color: AppColors.inkSoft,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const Padding(
+                                    padding: EdgeInsets.only(right: 14),
+                                    child: Icon(
+                                      Icons.camera_alt_outlined,
+                                      color: AppColors.roseDeep,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.add_a_photo_outlined,
+                                      color: AppColors.roseDeep,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'Tirar ou adicionar foto',
+                                      style: GoogleFonts.nunito(
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.inkSoft,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
@@ -586,9 +477,9 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.pinkChip,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: _loading
@@ -606,7 +497,6 @@ class _WishlistFormScreenState extends ConsumerState<WishlistFormScreen> {
                                   : 'Salvar desejo',
                               style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800,
-                                fontSize: 16,
                               ),
                             ),
                     ),
