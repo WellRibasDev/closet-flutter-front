@@ -9,7 +9,6 @@ import '../../../core/constants/categories.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_feedback.dart';
-import 'wishlist_form_sheet.dart';
 import 'wishlist_provider.dart';
 
 class WishlistDetailScreen extends ConsumerWidget {
@@ -326,11 +325,8 @@ class WishlistDetailScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: FilledButton.icon(
-                              onPressed: () => showWishlistFormSheet(
-                                context,
-                                ref,
-                                item: item,
-                              ),
+                              onPressed: () =>
+                                  context.push('/desejos/${item.id}/editar'),
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.butter,
                                 foregroundColor: AppColors.ink,
