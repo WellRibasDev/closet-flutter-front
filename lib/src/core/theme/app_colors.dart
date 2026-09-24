@@ -49,6 +49,7 @@ abstract final class AppColors {
     return switch (categoria) {
       'Camiseta' => lilac,
       'Calça' => butter,
+      'Short' => mint.withValues(alpha: 0.6),
       'Vestido' => petal,
       'Jaqueta' => butterDeep.withValues(alpha: 0.7),
       'Sapato' => mint,

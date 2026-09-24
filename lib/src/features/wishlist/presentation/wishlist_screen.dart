@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/app_colors.dart';
-import 'wishlist_form_sheet.dart';
 import 'wishlist_provider.dart';
 
 class WishlistScreen extends ConsumerWidget {
@@ -241,7 +240,7 @@ class WishlistScreen extends ConsumerWidget {
                 }),
                 const SizedBox(height: 8),
                 OutlinedButton(
-                  onPressed: () => showWishlistFormSheet(context, ref),
+                  onPressed: () => context.push('/desejos/nova'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.roseDeep,
                     side: BorderSide(
